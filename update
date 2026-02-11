@@ -1,0 +1,74 @@
+#!/bin/bash
+
+set -e
+
+print_section() {
+    local width=$(tput cols)
+    local bar=$(printf '━%.0s' $(seq 1 "$width"))
+    echo ""
+    echo "$bar"
+    echo "  $1"
+    echo "$bar"
+    echo ""
+}
+
+on_error() {
+    echo ""
+    echo "✗ Update failed."
+}
+
+on_exit() {
+    echo ""
+    read -p "Press enter to close the updater."
+}
+
+trap on_error ERR
+trap on_exit EXIT
+
+print_section "System Update (apt)"
+sudo apt update && sudo apt upgrade -y
+
+print_section "Flatpak Update"
+flatpak update -y
+
+print_section "Tuple Update"
+
+# Check current tuple version
+CURRENT_VERSION=""
+if [ -f /usr/local/bin/tuple ]; then
+    CURRENT_VERSION=$(/usr/local/bin/tuple 2>/dev/null | grep -oP 'v[0-9_]+\.[0-9]+' || echo "unknown")
+else
+    CURRENT_VERSION="not-installed"
+fi
+
+echo "Current version: $CURRENT_VERSION"
+echo ""
+
+# Fetch latest version info
+echo "Checking for latest version..."
+RESPONSE=$(curl -s "https://staging.tuple.app/latest_version/linux?arch=x86_64" -H "Accept: application/tuple.app; version=1")
+LATEST_VERSION=$(echo "$RESPONSE" | grep -oP '(?<="version":")[^"]*')
+DOWNLOAD_URL="https://tuple-client-releases.s3.amazonaws.com/linux/$LATEST_VERSION/x64/tuple"
+
+echo "Latest version: $LATEST_VERSION"
+echo ""
+
+# Compare versions and update if needed
+if [ "$CURRENT_VERSION" = "$LATEST_VERSION" ]; then
+    echo "✓ Tuple is already up to date"
+elif [ "$CURRENT_VERSION" = "not-installed" ]; then
+    echo "Downloading and installing Tuple $LATEST_VERSION..."
+    curl -L "$DOWNLOAD_URL" -o /tmp/tuple
+    chmod +x /tmp/tuple
+    sudo mv /tmp/tuple /usr/local/bin/tuple
+    echo "✓ Tuple $LATEST_VERSION installed successfully"
+else
+    echo "Downloading and installing Tuple $LATEST_VERSION..."
+    curl -L "$DOWNLOAD_URL" -o /tmp/tuple
+    chmod +x /tmp/tuple
+    sudo mv /tmp/tuple /usr/local/bin/tuple
+    echo "✓ Tuple updated from $CURRENT_VERSION to $LATEST_VERSION"
+fi
+
+echo ""
+echo "✓ All updates completed successfully"
