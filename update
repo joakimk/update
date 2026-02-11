@@ -51,7 +51,6 @@ LATEST_VERSION=$(echo "$RESPONSE" | jq -r '.version')
 DOWNLOAD_URL=$(echo "$RESPONSE" | jq -r '.url' | sed 's/x86_64/x64/g')
 
 echo "Latest version: $LATEST_VERSION"
-echo "Download URL: $DOWNLOAD_URL"
 echo ""
 
 # Compare versions and update if needed
