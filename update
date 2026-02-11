@@ -46,11 +46,12 @@ echo ""
 
 # Fetch latest version info
 echo "Checking for latest version..."
-RESPONSE=$(curl -s "https://staging.tuple.app/latest_version/linux?arch=x86_64" -H "Accept: application/tuple.app; version=1")
-LATEST_VERSION=$(echo "$RESPONSE" | grep -oP '(?<="version":")[^"]*')
-DOWNLOAD_URL="https://tuple-client-releases.s3.amazonaws.com/linux/$LATEST_VERSION/x64/tuple"
+RESPONSE=$(curl -s "https://production.tuple.app/latest_version/linux?arch=x86_64" -H "Accept: application/tuple.app; version=1")
+LATEST_VERSION=$(echo "$RESPONSE" | jq -r '.version')
+DOWNLOAD_URL=$(echo "$RESPONSE" | jq -r '.url' | sed 's/x86_64/x64/g')
 
 echo "Latest version: $LATEST_VERSION"
+echo "Download URL: $DOWNLOAD_URL"
 echo ""
 
 # Compare versions and update if needed
