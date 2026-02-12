@@ -19,7 +19,9 @@ on_error() {
 
 on_exit() {
     echo ""
-    read -p "Press enter to close the updater."
+    if [ -z "$SKIP_FINISHED_CONFIRMATION" ]; then
+        read -p "Press enter to close the updater."
+    fi
 }
 
 trap on_error ERR
