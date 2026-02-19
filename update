@@ -50,7 +50,7 @@ echo ""
 echo "Checking for latest version..."
 RESPONSE=$(curl -s "https://production.tuple.app/latest_version/linux?arch=x86_64" -H "Accept: application/tuple.app; version=1")
 LATEST_VERSION=$(echo "$RESPONSE" | jq -r '.version')
-DOWNLOAD_URL=$(echo "$RESPONSE" | jq -r '.url' | sed 's/x86_64/x64/g')
+DOWNLOAD_URL=$(echo "$RESPONSE" | jq -r '.url')
 
 echo "Latest version: $LATEST_VERSION"
 echo ""
